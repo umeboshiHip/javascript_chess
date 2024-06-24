@@ -678,6 +678,7 @@ function pieceSelect(_y, _x) {
 					ly = pieces[idx].y;
 
 					pbState = temporaryMove(sx, sy, lx, ly);
+
 					pushCanMovePos();
 
 
@@ -704,10 +705,12 @@ function pieceSelect(_y, _x) {
 				}
 
 				if(checkMoveDestination(pieces[idx].y, pieces[idx].x, n, i, idx) && !isClicked){
-					console.log(pieces[idx].y, pieces[idx].x, n, i, idx)
 					//					console.log(pMoves[board[pieces[idx].y][pieces[idx].x]-1])
 //					console.log("a")
 					for(var u = 0; u < canMovePos.length; u++){
+						lx = pieces[idx].x;
+						ly = pieces[idx].y;
+
 						sx = canMovePos[u].x;
 						sy = canMovePos[u].y;	
 
@@ -716,13 +719,6 @@ function pieceSelect(_y, _x) {
 						}
 
 						canPush = false;
-
-						lx = pieces[idx].x;
-						ly = pieces[idx].y;
-
-						
-						console.log(sx, sy, lx, ly)
-
 	
 						pbState = temporaryMove(sx, sy, lx, ly);
 						pushCanMovePos();
@@ -733,7 +729,7 @@ function pieceSelect(_y, _x) {
 //							console.log("b")
 							canPush = true;
 						} else {
-//							console.log("c")
+							console.log("c")
 							console.log(sx, sy, lx, ly)
 							canPush = false;
 						}
@@ -760,6 +756,7 @@ function pieceSelect(_y, _x) {
 }
 
 function temporaryMove(_sx, _sy, _x, _y) {
+	console.log("a")
 	var pt = board[_y][_x];		//移動前のボードの状態を保存
 	var bt = bState[_y][_x];
 	var pvt = board[_sy][_sx];
@@ -777,18 +774,6 @@ function temporaryMove(_sx, _sy, _x, _y) {
 function mouseClick(e) {
 	if(!gameStoped) {
 		var sx, sy, canMove;
-
-		for(var i = 0; i < pieces.length; i++) {
-			var isc = [];
-
-			if(pieces[i].isSelected) {
-				isc.push(i);
-			}
-
-			if(pieces[i].x == mouse.x && pieces[i].y == mouse.y && pieces[i].type != PIECE_CANT_MOVE) {
-	//			pt.textContent = "piece type: "+board[mouse.y][mouse.x]+", pieceismove: "+pieces[i].isMoved+" piecesx:" + pieces[i].x + "piecesy: " + pieces[i].y + " selected: " + isc+" isc: "+isc.length;
-			}
-		}
 
 		if(bState[mouse.y][mouse.x] == nPlayer) {
 			mouse.x = Math.floor(e.offsetX / TILE);
