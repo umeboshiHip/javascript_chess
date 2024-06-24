@@ -649,10 +649,15 @@ function pieceSelect(_y, _x) {
 
 	if(isCheckMateO) {
 		var idx = (_y*BOARD_SIZE)+_x;
-		var sx, sy, lx, ly, pbState, canPush, isClicked;
+		var sx, sy, lx, ly, pbState, canPush, isClicked, tx, ty;
 
 		for(var i = 0; i < 5; i++) {
 			for(var n = 0; n < 5; n++) {
+				if(pMoves[board[pieces[idx].y][pieces[idx].x]-1][n][i] != 0) {
+					tx = n;
+					ty = i;
+				}
+
 				canPush = false;
 				isClicked = false;
 
@@ -667,78 +672,88 @@ function pieceSelect(_y, _x) {
 				if(sx < 0 || sy < 0 || sx > 7 || sy > 7) {		//移動先が画面外だったら
 					continue;
 				}
-				
+
 				if(checkMoveDestination(pieces[idx].y, pieces[idx].x, n, i, idx)) {
-					if(checkCantMovePos(sy, sx, pieces[idx].x, pieces[idx].y)) {
+					lx = pieces[idx].x;
+					ly = pieces[idx].y;
+
+					pbState = temporaryMove(sx, sy, lx, ly);
+					pushCanMovePos();
+
+
+
+					if(checkIsCheckMate()) {
+						canPush = true;
+					} else {
+						canPush = false;
+					}
+					canMovePos.splice(0);
+
+					board[sy][sx] = pbState[2];
+					bState[sy][sx] = pbState[3];
+
+					board[ly][lx] = pbState[0];
+					bState[ly][lx] = pbState[1];
+
+					if(canPush) {
+						cantMovePos.push({x: sx, y: sy});
+//						isClicked = true;
+					}
+
+					
+				}
+
+				if(checkMoveDestination(pieces[idx].y, pieces[idx].x, n, i, idx) && !isClicked){
+					console.log(pieces[idx].y, pieces[idx].x, n, i, idx)
+					//					console.log(pMoves[board[pieces[idx].y][pieces[idx].x]-1])
+//					console.log("a")
+					for(var u = 0; u < canMovePos.length; u++){
+						sx = canMovePos[u].x;
+						sy = canMovePos[u].y;	
+
+						if(sx < 0 || sy < 0 || sx > 7 || sy > 7) {		//移動先が画面外だったら
+							continue;
+						}
+
+						canPush = false;
+
 						lx = pieces[idx].x;
 						ly = pieces[idx].y;
 
+						
+						console.log(sx, sy, lx, ly)
+
+	
 						pbState = temporaryMove(sx, sy, lx, ly);
 						pushCanMovePos();
 
+						console.log(board)
+					
 						if(checkIsCheckMate()) {
+//							console.log("b")
 							canPush = true;
 						} else {
+//							console.log("c")
+							console.log(sx, sy, lx, ly)
 							canPush = false;
 						}
 
 						board[sy][sx] = pbState[2];
 						bState[sy][sx] = pbState[3];
-
-						board[ly][lx] = pbState[0];
-						bState[ly][lx] = pbState[1];
-
-						for(var t = 0; t < cantMovePos.length; t++) {
-							if(cantMovePos[t].x == sx && cantMovePos[t].y == sy) {
-								canPush = false;
-							}
-						}
-
-						if(canPush) {
-							cantMovePos.push({x: sx, y: sy});
-							isClicked = true;
-						}
-					}
-				}
-
-				if(!isClicked) {
-					for(var u = 0; u < canMovePos.length; u++){
-						var cx = canMovePos[u].x;
-						var cy = canMovePos[u].y;
-	
-						canPush = false;
-	
-						lx = pieces[idx].x;
-						ly = pieces[idx].y;
-	
-						pbState = temporaryMove(cx, cy, lx, ly);
-						pushCanMovePos();
-						
-						board[cy][cx] = pbState[2];
-						bState[cy][cx] = pbState[3];
 	
 						board[ly][lx] = pbState[0];
 						bState[ly][lx] = pbState[1];
-					
-						if(checkIsCheckMate()) {
-							canPush = true;
-						} else {
-							canPush = false;
-						}
-	
-						for(var t = 0; t < cantMovePos.length; t++) {
-							if(cantMovePos[t].x == cx && cantMovePos[t].y == cy) {
-								canPush = false;
-							}
-						}
-	
-						if(checkMoveDestination(pieces[idx].y, pieces[idx].x, n, i, idx)) {
-							if(canPush) cantMovePos.push({x: cx, y: cy});
-						}
+
+						if(canPush) cantMovePos.push({x: sx, y: sy});
 					}	
+				
+					canMovePos.splice(0);
 				}
 			}
 		}
+
+		console.log(cantMovePos, tx, ty)
+		checkMoveDestination(pieces[idx].y, pieces[idx].x, tx, ty, idx)
 	}
 
 	return true;
@@ -802,10 +817,13 @@ function mouseClick(e) {
 
 							if(checkMoveDestination(pieces[i].y, pieces[i].x, p, n, i) && mouse.x == sx && mouse.y == sy && !isClicked) {
 								if(checkCantMovePos(sy, sx, pieces[i].x, pieces[i].y)) {
+//									console.log(cantMovePos)
+									
 									if(isCheckMateO || isCheckMateT) {
 										for(var t = 0; t < cantMovePos.length; t++) {
 											if(cantMovePos[t].x == sx && cantMovePos[t].y == sy) {
 												canMove = false;
+												console.log("a")
 											}
 										}
 									}
@@ -819,18 +837,23 @@ function mouseClick(e) {
 
 							if(!isClicked) {
 								for(var u = 0; u < canMovePos.length; u++) {
+									canMove = true;
+									
 									sx = canMovePos[u].x;
 									sy = canMovePos[u].y;
 
-									if(isCheckMateO || isCheckMateT) {
-										for(var t = 0; t < cantMovePos.length; t++) {
-											if(cantMovePos[t].x == sx && cantMovePos[t].y == sy) {
-												canMove = false;
+									if(checkMoveDestination(pieces[i].y, pieces[i].x, p, n, i) && mouse.x == sx && mouse.y == sy && !isClicked) {
+										console.log(cantMovePos)
+										
+										if(isCheckMateO || isCheckMateT) {
+											for(var t = 0; t < cantMovePos.length; t++) {
+												if(cantMovePos[t].x == sx && cantMovePos[t].y == sy) {
+													console.log("a")
+													canMove = false;
+												}
 											}
 										}
-									}
 
-									if(checkMoveDestination(pieces[i].y, pieces[i].x, p, n, i) && mouse.x == sx && mouse.y == sy && !isClicked) {
 										if(canMove) {
 											pieces[i].Move(sx, sy);
 											isClicked = true;
