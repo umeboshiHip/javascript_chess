@@ -20,7 +20,7 @@ class Piece {
 	Move(sx, sy) {
 		var pt = board[this.y][this.x];		//移動前のボードの状態を保存
 		var bt = bState[this.y][this.x];
-		
+
 		if(!checkPieceEvolution(this.x, this.y, sy)) {
 			gameStoped = false;
 		} else {
@@ -38,8 +38,8 @@ class Piece {
 		this.x = sx;	//座標を移動先へ変える
 		this.y = sy;
 
-		console.log(board, bt, pt, bState);
-		console.log(checkIsCheckMate())
+//		console.log(board, bt, pt, bState);
+//		console.log(board[sy][sx])
 
 		if(!this.isMoved) this.isMoved = true;	//すでに動いたフラグを付ける？
 		nPlayer = (nPlayer%2)+1;
@@ -121,7 +121,7 @@ var bState = [
 ];*/
 
 var board = [
-	[3, 2, 4, 5, 6, 4, 2, 3],
+	[3, 2, 4, 5, 6, 0, 2, 3],
 	[1, 1, 1, 1, 1, 1, 1, 1],
 	[0, 0, 0, 0, 0, 0, 0, 0],
 	[0, 0, 0, 0, 0, 0, 0, 0],
@@ -132,7 +132,7 @@ var board = [
 ]
 
 var amp = [
-	[3, 2, 4, 5, 6, 4, 2, 3],
+	[3, 2, 4, 5, 6, 0, 2, 3],
 	[1, 1, 1, 1, 1, 1, 1, 1],
 	[0, 0, 0, 0, 0, 0, 0, 0],
 	[0, 0, 0, 0, 0, 0, 0, 0],
@@ -144,8 +144,8 @@ var amp = [
 
 
 var bState = [
-	[2, 2, 2, 2, 2, 2, 2, 2],
-	[2, 2, 2, 2, 2, 2, 2, 2],
+	[2, 2, 2, 2, 2, 0, 2, 2],
+	[2, 2, 2, 2, 2, 1, 2, 2],
 	[0, 0, 0, 0, 0, 0, 0, 0],
 	[0, 0, 0, 0, 0, 0, 0, 0],
 	[0, 0, 0, 0, 2, 0, 0, 0],
@@ -203,6 +203,7 @@ var aMovePos = [
 	[],
 	[]
 ];
+
 var lastPlayer = 0;
 
 window.onload = function() {
@@ -227,6 +228,7 @@ function init() {
 
 	pushCanMovePos();
 	canMovePos.splice(0);
+	cantMovePos.splice(0);
 
 	loop();
 }
@@ -305,7 +307,11 @@ function drawBoard() {
 
 function checkGameSet() {
 	if(isCheckMateO) {
+		for(var i = 0; i < pieces.length; i++) {
+			if(bState[pieces[i].y][pieces[i].x] == oPlayer && pieces[i].type != 0) {
 
+			}
+		}
 	}
 }
 
@@ -319,9 +325,11 @@ function checkCantMovePos(_sy, _sx, _x, _y) {
 
 	for(var i = 0; i < aMovePos[lastPlayer-1].length; i++) {
 		var a = aMovePos[lastPlayer-1][i];
-
-		if(((a.x != _x && a.y != _y)) || (bState[_sy][_sx] == nPlayer%2+1) || (a.x != _sx && a.y != _sy)) {
-			continue;
+			
+		if(((a.x != _x && a.y != _y)) || (bState[_sy][_sx] == nPlayer%2+1)) {
+			if(a.x != _sx && a.y != _sy) {
+				continue;
+			}
 		}
 		
 		if(a.x == _x && a.y == _y) {
@@ -367,6 +375,7 @@ function checkPieceEvolution(_x, _y, _sy) {
 }
 
 var canMovePos = [];
+var cantMovePos = [];
 
 function checkMoveDestination(_sy, _sx, _x, _y, _i, _t) {
 	if(board[_sy][_sx]-1 < 0) {
@@ -441,7 +450,9 @@ function checkMoveDestination(_sy, _sx, _x, _y, _i, _t) {
 					}
 				}
 
-				if(!bflag) canMovePos.push({x: dx, y: dy});
+				if(!bflag) {
+					canMovePos.push({x: dx, y: dy});
+				}
 			}
 		}
 
@@ -491,6 +502,7 @@ function checkIsCheckMate() {
 
 function pushCanMovePos() {
 	if(lastPlayer != 0) aMovePos[lastPlayer-1].splice(0);
+
 	var bflag;
 
 	for(var i = 0; i < pieces.length; i++) {
@@ -515,7 +527,7 @@ function pushCanMovePos() {
 							}
 						}
 					
-						if(!bflag) aMovePos[lastPlayer-1].push({x: sx, y: sy});
+						if(!bflag) aMovePos[lastPlayer-1].push({x: sx, y: sy});		
 					}
 
 					bflag = false;
@@ -536,7 +548,6 @@ function pushCanMovePos() {
 							if(!bflag) aMovePos[lastPlayer-1].push({x: cx, y: cy});
 						}
 					}
-//					canMovePos.splice(0);
 				}
 			}
 		}
@@ -544,7 +555,7 @@ function pushCanMovePos() {
 }
 
 function showMoveDestination() {
-	var sx, sy;
+	var sx, sy, canMove;
 
 	for(var i = 0; i < pieces.length; i++) {
 		if(pieces[i].isSelected) {
@@ -564,16 +575,20 @@ function showMoveDestination() {
 					
 					if(checkMoveDestination(pieces[i].y, pieces[i].x, p, n, i) && bState[pieces[i].y][pieces[i].x] == nPlayer) {
 						if(checkCantMovePos(sy, sx, pieces[i].x, pieces[i].y)) {
+							canMove = true;
+
 							g.strokeStyle = "#000000"
 							if(board[sy][sx] != BOARD_NOTHING) {
 								g.strokeStyle = "#ff0000";
 							}
 
-							g.strokeRect(sx*TILE, sy*TILE, TILE, TILE);		//移動先を塗る
+							if(canMove) g.strokeRect(sx*TILE, sy*TILE, TILE, TILE);		//移動先を塗る
 						}
 					}
 
 					for(var u = 0; u < canMovePos.length; u++) {
+						canMove = true;
+
 						var cx = canMovePos[u].x;
 						var cy = canMovePos[u].y;
 
@@ -582,7 +597,7 @@ function showMoveDestination() {
 							g.strokeStyle = "#ff0000";
 						}
 
-						g.strokeRect(cx*TILE, cy*TILE, TILE, TILE);
+						if(canMove) g.strokeRect(cx*TILE, cy*TILE, TILE, TILE);
 					}
 				}
 			}
@@ -632,13 +647,121 @@ function pieceSelect(_y, _x) {
 		}
 	}
 
+	if(isCheckMateO) {
+		var idx = (_y*BOARD_SIZE)+_x;
+		var sx, sy, lx, ly, pbState, canPush, isClicked;
+
+		for(var i = 0; i < 5; i++) {
+			for(var n = 0; n < 5; n++) {
+				canPush = false;
+				isClicked = false;
+
+				if(bState[pieces[idx].y][pieces[idx].x] == oPlayer) {
+					sx = (n-2)+pieces[idx].x;			//移動先x
+					sy = (i-2)+pieces[idx].y;			//移動先y
+				} else if(bState[pieces[idx].y][pieces[idx].x] == tPlayer) {
+					sx = ((4-n)-2)+pieces[idx].x;			//移動先x
+					sy = ((4-i)-2)+pieces[idx].y;			//移動先y
+				}
+
+				if(sx < 0 || sy < 0 || sx > 7 || sy > 7) {		//移動先が画面外だったら
+					continue;
+				}
+				
+				if(checkMoveDestination(pieces[idx].y, pieces[idx].x, n, i, idx)) {
+					if(checkCantMovePos(sy, sx, pieces[idx].x, pieces[idx].y)) {
+						lx = pieces[idx].x;
+						ly = pieces[idx].y;
+
+						pbState = temporaryMove(sx, sy, lx, ly);
+						pushCanMovePos();
+
+						if(checkIsCheckMate()) {
+							canPush = true;
+						} else {
+							canPush = false;
+						}
+
+						board[sy][sx] = pbState[2];
+						bState[sy][sx] = pbState[3];
+
+						board[ly][lx] = pbState[0];
+						bState[ly][lx] = pbState[1];
+
+						for(var t = 0; t < cantMovePos.length; t++) {
+							if(cantMovePos[t].x == sx && cantMovePos[t].y == sy) {
+								canPush = false;
+							}
+						}
+
+						if(canPush) {
+							cantMovePos.push({x: sx, y: sy});
+							isClicked = true;
+						}
+					}
+				}
+
+				if(!isClicked) {
+					for(var u = 0; u < canMovePos.length; u++){
+						var cx = canMovePos[u].x;
+						var cy = canMovePos[u].y;
+	
+						canPush = false;
+	
+						lx = pieces[idx].x;
+						ly = pieces[idx].y;
+	
+						pbState = temporaryMove(cx, cy, lx, ly);
+						pushCanMovePos();
+						
+						board[cy][cx] = pbState[2];
+						bState[cy][cx] = pbState[3];
+	
+						board[ly][lx] = pbState[0];
+						bState[ly][lx] = pbState[1];
+					
+						if(checkIsCheckMate()) {
+							canPush = true;
+						} else {
+							canPush = false;
+						}
+	
+						for(var t = 0; t < cantMovePos.length; t++) {
+							if(cantMovePos[t].x == cx && cantMovePos[t].y == cy) {
+								canPush = false;
+							}
+						}
+	
+						if(checkMoveDestination(pieces[idx].y, pieces[idx].x, n, i, idx)) {
+							if(canPush) cantMovePos.push({x: cx, y: cy});
+						}
+					}	
+				}
+			}
+		}
+	}
+
 	return true;
 }
 
+function temporaryMove(_sx, _sy, _x, _y) {
+	var pt = board[_y][_x];		//移動前のボードの状態を保存
+	var bt = bState[_y][_x];
+	var pvt = board[_sy][_sx];
+	var bvt = bState[_sy][_sx];
+
+	board[_y][_x] = 0;		//ボードの情報をきれいに
+	bState[_y][_x] = 0;
+
+	board[_sy][_sx] = pt;
+	bState[_sy][_sx] = bt;
+	
+	return [pt, bt, pvt, bvt];
+}
 
 function mouseClick(e) {
 	if(!gameStoped) {
-		var sx, sy, ly, lx;
+		var sx, sy, canMove;
 
 		for(var i = 0; i < pieces.length; i++) {
 			var isc = [];
@@ -674,19 +797,22 @@ function mouseClick(e) {
 								continue;
 							}
 
+							canMove = true;
+							isClicked = false;
+
 							if(checkMoveDestination(pieces[i].y, pieces[i].x, p, n, i) && mouse.x == sx && mouse.y == sy && !isClicked) {
 								if(checkCantMovePos(sy, sx, pieces[i].x, pieces[i].y)) {
-									lx = pieces[i].x;
-									ly = pieces[i].y;
-
-									pieces[i].Move(sx, sy);
-									isClicked = true;
-
-									if(isCheckMateO && bState[sy][sx] == oPlayer) {
-										if(checkIsCheckMate()) {
-											pieces[i].Move(lx, ly);
-											isClicked = false;
+									if(isCheckMateO || isCheckMateT) {
+										for(var t = 0; t < cantMovePos.length; t++) {
+											if(cantMovePos[t].x == sx && cantMovePos[t].y == sy) {
+												canMove = false;
+											}
 										}
+									}
+
+									if(canMove) {
+										pieces[i].Move(sx, sy);
+										isClicked = true;
 									}
 								}
 							}
@@ -696,18 +822,18 @@ function mouseClick(e) {
 									sx = canMovePos[u].x;
 									sy = canMovePos[u].y;
 
-									lx = pieces[i].x;
-									ly = pieces[i].y;
-									
-									if(checkMoveDestination(pieces[i].y, pieces[i].x, p, n, i) && mouse.x == sx && mouse.y == sy && !isClicked) {									
-										pieces[i].Move(sx, sy);
-										isClicked = true;
-
-										if(isCheckMateO && bState[sy][sx] == oPlayer) {
-											if(checkIsCheckMate()) {
-												pieces[i].Move(lx, ly);
-												isClicked = false;
+									if(isCheckMateO || isCheckMateT) {
+										for(var t = 0; t < cantMovePos.length; t++) {
+											if(cantMovePos[t].x == sx && cantMovePos[t].y == sy) {
+												canMove = false;
 											}
+										}
+									}
+
+									if(checkMoveDestination(pieces[i].y, pieces[i].x, p, n, i) && mouse.x == sx && mouse.y == sy && !isClicked) {
+										if(canMove) {
+											pieces[i].Move(sx, sy);
+											isClicked = true;
 										}
 									}
 								}
@@ -728,6 +854,7 @@ function mouseClick(e) {
 			}
 
 			pushCanMovePos();
+			cantMovePos.splice(0);
 			canMovePos.splice(0);
 		}
 	} else {
